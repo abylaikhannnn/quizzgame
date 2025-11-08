@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Умная Викторина</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        #start-screen {
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            margin: 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            background-color: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background-color: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .option-btn.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .question-counter {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        #question {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .result-message {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Стартовый экран -->
+        <div id="start-screen" class="screen active">
+            <h1>Умная Викторина</h1>
+            <p>Проверьте свои знания в этой увлекательной викторине!</p>
+            <p>Вам будет предложено 10 вопросов с вариантами ответов.</p>
+            <button id="start-btn" class="btn">Начать викторину</button>
+        </div>
+
+        <!-- Экран игры -->
+        <div id="game-screen" class="screen">
+            <div class="question-counter">Вопрос <span id="current-question">1</span> из 10</div>
+            <div class="progress-bar">
+                <div class="progress" id="progress-bar"></div>
+            </div>
+            <h2 id="question">Вопрос загружается...</h2>
+            <div id="options-container">
+                <!-- Варианты ответов будут добавлены с помощью JavaScript -->
+            </div>
+            <button id="next-btn" class="btn" style="display: none;">Следующий вопрос</button>
+        </div>
+
+        <!-- Экран результатов -->
+        <div id="result-screen" class="screen">
+            <h1>Результаты</h1>
+            <div class="score-display">Ваш счет: <span id="score">0</span>/10</div>
+            <div class="result-message" id="result-message"></div>
+            <button id="restart-btn" class="btn">Играть снова</button>
+        </div>
+    </div>
+
+    <script>
+        // Вопросы для викторины
+        const quizQuestions = [
+            {
+                question: "Какая планета самая большая в Солнечной системе?",
+                options: ["Земля", "Марс", "Юпитер", "Сатурн"],
+                correct: 2
+            },
+            {
+                question: "Какой химический элемент обозначается символом 'O'?",
+                options: ["Золото", "Кислород", "Олово", "Осмий"],
+                correct: 1
+            },
+            {
+                question: "Кто написал роман 'Война и мир'?",
+                options: ["Федор Достоевский", "Лев Толстой", "Антон Чехов", "Иван Тургенев"],
+                correct: 1
+            },
+            {
+                question: "Какая самая длинная река в мире?",
+                options: ["Амазонка", "Нил", "Янцзы", "Миссисипи"],
+                correct: 0
+            },
+            {
+                question: "В каком году человек впервые ступил на Луну?",
+                options: ["1965", "1969", "1971", "1975"],
+                correct: 1
+            },
+            {
+                question: "Какой язык программирования считается 'языком веба'?",
+                options: ["Python", "Java", "JavaScript", "C++"],
+                correct: 2
+            },
+            {
+                question: "Сколько континентов на Земле?",
+                options: ["5", "6", "7", "8"],
+                correct: 2
+            },
+            {
+                question: "Кто изобрел телефон?",
+                options: ["Томас Эдисон", "Александр Грэхем Белл", "Никола Тесла", "Гульельмо Маркони"],
+                correct: 1
+            },
+            {
+                question: "Какая самая высокая гора в мире?",
+                options: ["Килиманджаро", "Эверест", "Мак-Кинли", "Аконкагуа"],
+                correct: 1
+            },
+            {
+                question: "Какой газ преобладает в атмосфере Земли?",
+                options: ["Кислород", "Углекислый газ", "Азот", "Водород"],
+                correct: 2
+            }
+        ];
+
+        // Элементы DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const currentQuestionElement = document.getElementById('current-question');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreElement = document.getElementById('score');
+        const resultMessageElement = document.getElementById('result-message');
+
+        // Переменные игры
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+
+        // Функция для начала игры
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            showScreen(gameScreen);
+            showQuestion();
+        }
+
+        // Функция для отображения вопроса
+        function showQuestion() {
+            resetState();
+            const question = quizQuestions[currentQuestionIndex];
+            questionElement.textContent = question.question;
+            currentQuestionElement.textContent = currentQuestionIndex + 1;
+            
+            // Обновление прогресс-бара
+            progressBar.style.width = `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%`;
+            
+            // Создание кнопок с вариантами ответов
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn');
+                button.addEventListener('click', () => selectOption(button, index));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Функция сброса состояния
+        function resetState() {
+            nextBtn.style.display = 'none';
+            optionsContainer.innerHTML = '';
+            selectedOption = null;
+        }
+
+        // Функция выбора варианта ответа
+        function selectOption(button, index) {
+            if (selectedOption !== null) return;
+            
+            selectedOption = index;
+            const question = quizQuestions[currentQuestionIndex];
+            
+            // Отметить правильный и неправильный ответы
+            const options = document.querySelectorAll('.option-btn');
+            options.forEach((opt, i) => {
+                if (i === question.correct) {
+                    opt.classList.add('correct');
+                } else if (i === index && i !== question.correct) {
+                    opt.classList.add('incorrect');
+                }
+                opt.disabled = true;
+            });
+            
+            // Проверить ответ и обновить счет
+            if (index === question.correct) {
+                score++;
+            }
+            
+            nextBtn.style.display = 'block';
+        }
+
+        // Функция для перехода к следующему вопросу
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Функция для отображения результатов
+        function showResults() {
+            showScreen(resultScreen);
+            scoreElement.textContent = score;
+            
+            // Сообщение в зависимости от результата
+            if (score === quizQuestions.length) {
+                resultMessageElement.textContent = "Потрясающе! Вы настоящий эксперт!";
+            } else if (score >= quizQuestions.length * 0.7) {
+                resultMessageElement.textContent = "Отличный результат! Вы хорошо разбираетесь в разных темах!";
+            } else if (score >= quizQuestions.length * 0.5) {
+                resultMessageElement.textContent = "Хороший результат! Есть куда стремиться!";
+            } else {
+                resultMessageElement.textContent = "Не расстраивайтесь! Попробуйте еще раз!";
+            }
+        }
+
+        // Функция для переключения экранов
+        function showScreen(screen) {
+            startScreen.classList.remove('active');
+            gameScreen.classList.remove('active');
+            resultScreen.classList.remove('active');
+            screen.classList.add('active');
+        }
+
+        // Обработчики событий
+        startBtn.addEventListener('click', startGame);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', () => {
+            showScreen(startScreen);
+        });
+    </script>
+</body>
+</html>
